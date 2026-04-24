@@ -1,0 +1,31 @@
+# Python
+.venv/
+__pycache__/
+*.pyc
+*.pyo
+.pytest_cache/
+.ruff_cache/
+.ipynb_checkpoints/
+
+# Environment
+.env
+.env.local
+
+# Data + runtime artifacts
+data/chroma_store/
+data/archive (1)/
+data/raw-data/
+data/*.csv
+logs/
+*.jsonl
+
+# Node
+node_modules/
+dist/
+.next/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+.DS_Store

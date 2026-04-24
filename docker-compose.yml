@@ -1,0 +1,62 @@
+# docker-compose.yml — one-command stack for Decision Intelligence Assistant.
+# Run from this directory: `docker compose up --build`
+# Phase 4 D-07..D-12.
+
+services:
+  backend:
+    # D-07: build from backend/Dockerfile.
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    image: dia-backend:latest
+    container_name: dia-backend
+
+    # D-08: host 8000 -> container 8000 (direct API access for curl/testing).
+    ports:
+      - "8000:8000"
+
+    # D-10: load the project .env. CHROMA_PATH / MODEL_PATH / LOG_PATH must be
+    # container-relative (/app/...) so that ROOT_DIR-based resolution inside
+    # config.py points at the bind-mounted directories.
+    env_file:
+      - .env
+
+    # D-09: bind mounts — host paths (already in .gitignore) mapped to the
+    # container paths that config.py will resolve from the env vars. This is
+    # what makes chroma_store and queries.jsonl survive `docker compose down`.
+    #
+    # ./data/chroma_store exists on the host after Phase 1; bind mount keeps
+    # the ~50K-document vector DB in place across rebuilds with no re-embed.
+    # ./logs is created on first write if it does not already exist.
+    volumes:
+      - ./data/chroma_store:/app/data/chroma_store
+      - ./logs:/app/logs
+      # The trained ML pickle lives inside the image (copied in backend/Dockerfile
+      # via `COPY app ./app`), so no mount needed for MODEL_PATH.
+
+    restart: unless-stopped
+
+  frontend:
+    # D-07: build from frontend/Dockerfile (multi-stage, ends in nginx:alpine).
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    image: dia-frontend:latest
+    container_name: dia-frontend
+
+    # D-08: host 3000 -> container 80 (nginx). Matches Phase 3 dev URL so the
+    # browser bookmark / demo link doesn't change between dev and compose.
+    ports:
+      - "3000:80"
+
+    # D-11: wait until backend container starts before frontend. Note compose
+    # v2 depends_on only guarantees start order, not readiness — nginx will
+    # still retry the proxy_pass upstream, and POST /query fails gracefully
+    # via Phase 2's partial-failure contract if backend is still warming up.
+    depends_on:
+      - backend
+
+    restart: unless-stopped
+
+# D-12: default bridge network is fine — `backend` is resolvable as a hostname
+# from the `frontend` container without any explicit `networks:` block.
