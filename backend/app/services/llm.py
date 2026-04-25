@@ -14,22 +14,10 @@ import instructor
 from groq import Groq
 
 from app.core.config import get_settings
+from app.prompts.llm import SYSTEM_PROMPT_NON_RAG, SYSTEM_PROMPT_ZERO_SHOT
 from app.schemas.query import LLMPredictorResult, ZeroShotOutput
 
 logger = logging.getLogger(__name__)
-
-SYSTEM_PROMPT_NON_RAG = (
-    "You are a customer support assistant. Answer the user's query using your "
-    "own knowledge only — no external context is provided. "
-    "Keep the answer concise (2-4 sentences)."
-)
-
-SYSTEM_PROMPT_ZERO_SHOT = (
-    "You classify customer support messages as URGENT or NORMAL. URGENT means the "
-    "customer needs immediate action (account security, service outage, payment "
-    "failure, stated emergency). NORMAL means routine inquiry. Return a label, a "
-    "brief reasoning (one sentence), and a confidence value between 0 and 1."
-)
 
 
 def compute_cost(input_tokens: int, output_tokens: int) -> float:
