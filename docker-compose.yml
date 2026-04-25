@@ -29,8 +29,10 @@ services:
     # the ~50K-document vector DB in place across rebuilds with no re-embed.
     # ./logs is created on first write if it does not already exist.
     volumes:
-      - ./data/chroma_store:/app/data/chroma_store
-      - ./logs:/app/logs
+      - ./data/chroma_store:/data/chroma_store
+      - ./data/test_features.csv:/data/test_features.csv
+      - ./data/model_metrics.json:/data/model_metrics.json
+      - ./logs:/logs
       # The trained ML pickle lives inside the image (copied in backend/Dockerfile
       # via `COPY app ./app`), so no mount needed for MODEL_PATH.
 

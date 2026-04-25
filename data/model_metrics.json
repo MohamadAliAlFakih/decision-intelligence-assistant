@@ -1,0 +1,5 @@
+{
+  "test_f1_urgent": 0.7149,
+  "test_accuracy": 0.7873,
+  "model_name": "Gradient Boosting"
+}

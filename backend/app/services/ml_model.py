@@ -148,18 +148,13 @@ def predict(query: str) -> PredictorResult:
 
 @lru_cache
 def get_accuracy() -> float:
-    """F1 on URGENT class from data/test_features.csv, computed once."""
-    # test_features.csv lives at data/ relative to the project root (one level
-    # above backend/). Phase 1 put it there.
-    csv_path = ROOT_DIR.parent / "data" / "test_features.csv"
-    if not csv_path.exists():
-        logger.warning("test_features.csv not found at %s; returning 0.0", csv_path)
-        return 0.0
-    df = pd.read_csv(csv_path)
-    X = df[FEATURE_COLS].to_numpy()
-    y_true = df["priority"].to_numpy()
-    pipe = get_ml_model()
-    y_pred = pipe.predict(X)
-    score = float(f1_score(y_true, y_pred, pos_label="URGENT"))
-    logger.info("Computed startup accuracy (F1 URGENT) = %.4f on %d test rows", score, len(df))
-    return score
+    """F1 on URGENT class — loaded from model_metrics.json produced by the notebook."""
+    import json
+    metrics_path = ROOT_DIR.parent / "data" / "model_metrics.json"
+    if metrics_path.exists():
+        with metrics_path.open() as fh:
+            score = float(json.load(fh)["test_f1_urgent"])
+        logger.info("Loaded F1 URGENT = %.4f from %s", score, metrics_path)
+        return score
+    logger.warning("model_metrics.json not found at %s; returning 0.0", metrics_path)
+    return 0.0
